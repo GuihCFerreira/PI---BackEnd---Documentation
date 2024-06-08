@@ -1,0 +1,557 @@
+openapi : 3.0.3
+
+info:
+  title: API Projeto Interdiciplinar - Agro Guard
+  version: 1.0.0
+  contact:
+    email: guihdevtestes@gmail.com
+
+servers:
+  - url: https://teste-q43i.onrender.com/v1
+
+tags:
+  - name: Temperatures
+    description: Operation for temperature collections
+  - name: Humidities
+    description: Operation for humidity collections
+  - name: Users
+    description: Operation for user collections
+  - name: Summary
+    description: Operation for summary collection
+
+paths:
+  /summary:
+    get:
+      tags:
+        - Summary
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: date_greater
+          schema: 
+            type: string
+            format: date
+          required: true
+          description: Date to filter it or greater
+          example: 01/01/2024
+        - in: query
+          name: date_lesser
+          schema: 
+            type: string
+            format: date
+          required: true
+          description: Date to filter it or lesser
+          example: 01/01/2024
+      summary: Get static temperature and humidity summary
+      responses:
+        '200':
+          description: Get the static summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseSummary'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseSummaryError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUserUnauthorized'    
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseSummaryNotFound'
+  /temperatures:
+    get:
+      tags:
+        - Temperatures
+      summary: Gel all temperatures
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: latest
+          schema: 
+            type: boolean
+          description: If true, it will return the last measurement in a unic object
+          example: true
+      responses:
+        '200':
+          description: Retrieve all temperatures
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseTemperatures'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUserUnauthorized' 
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseTemperatureNotFound'  
+  /temperatures/iot:
+    post:
+      tags:
+        - Temperatures
+      summary: Post a new temperature
+      requestBody: 
+        required: true
+        content: 
+          application/json:
+            schema:
+              required: ['temperature','unit_of_measurement']
+              $ref: '#/components/schemas/RequestTemperature'
+      responses:
+        '201':
+          description: Temperature created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseTemperature'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseTemperatureError'      
+  /humidities:
+    get:
+      tags:
+        - Humidities
+      summary: Gel all humidities
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: latest
+          schema: 
+            type: boolean
+          description: If true, it will return the last measurement in a unic object
+          example: true
+      responses:
+        '200':
+          description: Retrieve all humidities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseHumidities'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUserUnauthorized' 
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseHumidityNotFound'  
+  /humidities/iot:
+    post:
+      tags:
+        - Humidities
+      summary: Post a new humidity
+      requestBody: 
+        required: true
+        content: 
+          application/json:
+            schema:
+              required: ['temperature','unit_of_measurement']
+              $ref: '#/components/schemas/RequestHumidity'
+      responses:
+        '201':
+          description: Humidity created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseHumidity'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseHumidityError'  
+  /users:
+    post:
+      tags:
+        - Users
+      summary: Create a new user
+      requestBody: 
+        required: true
+        content: 
+          application/json:
+            schema:
+              required: ['email','password','name']
+              $ref: '#/components/schemas/RequestUser'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUser'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUserError'
+        '409':
+          description: Conflicted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUserAlreadyExists'
+
+    patch:
+      tags:
+        - Users
+      summary: Update user password
+      security:
+        - bearerAuth: []
+      requestBody: 
+        required: true
+        content: 
+          application/json:
+            schema:
+              required: ['email','password','new_password']
+              $ref: '#/components/schemas/RequestUserResetPassword'
+      responses:
+        '204':
+          description: User updated
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUserErrorResetPassword'
+        '401':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUserForbiddenPassword'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUserNotFound'
+  /users/login:
+    post:
+      tags:
+        - Users
+      summary: Login user
+      requestBody: 
+        required: true
+        content: 
+          application/json:
+            schema:
+              required: ['email','password']
+              $ref: '#/components/schemas/RequestUserLogin'
+      responses:
+        '200':
+          description: Login user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUser'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUserErrorLogin'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUserForbidden'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUserNotFound'
+
+components:
+  schemas:
+    ResponseSummary:
+      type: object
+      properties:
+        temperature:
+          type: object
+          properties:
+            mean:
+              type: string
+              example: 28.2
+              description: Temperature mean calculation
+            mode:
+              type: string
+              example: 28
+              description: Temperature mode calculation
+            median:
+              type: string
+              example: 28.30
+              description: Temperature median calculation
+            standard_deviation:
+              type: string
+              example: 0.95
+              description: Temperature standard deviation calculation
+            skewness:
+              type: string
+              example: 2.34
+              description: Temperature skewness calculation
+            future_prediction:
+              type: string
+              example: 27.25
+              description: Temperature future prediction calculation
+        humidity:
+          type: object
+          properties:
+            mean:
+              type: string
+              example: 28.2
+              description: Humidity mean calculation
+            mode:
+              type: string
+              example: 28
+              description: Humidity mode calculation
+            median:
+              type: string
+              example: 28.30
+              description: Humidity median calculation
+            standard_deviation:
+              type: string
+              example: 0.95
+              description: Humidity standard deviation calculation
+            skewness:
+              type: string
+              example: 2.34
+              description: Humidity skewness calculation
+            future_prediction:
+              type: string
+              example: 27.25
+              description: Humidity future prediction calculation
+    ResponseSummaryError:
+      type: object
+      properties:
+        message:
+          type: string
+          default: date_greater and date_lesser is required in query
+    ResponseSummaryNotFound:
+      type: object
+      properties:
+        message:
+          type: string
+          default: Summary not found
+    ResponseTemperature:
+      type: object
+      properties:
+          temperature:
+            type: string
+            example: 28.2 ºC
+            description: Temperature value
+          date:
+            type: string
+            format: date
+            example: 01/01/2024
+            description: Temperature date
+          time:
+            type: string
+            example: 11:30
+            description: Temperature time
+    ResponseTemperatures:
+      type: array
+      items: 
+        $ref: '#/components/schemas/ResponseTemperature'
+    RequestTemperature:
+      type: object
+      properties:
+        temperature: 
+          type: number
+          example: 27.4
+          description: Temperature value
+        unit_of_measurement:
+          type: string
+          example: ºC
+          description: Temperature measurement unit
+    ResponseTemperatureError:
+      type: object
+      properties:
+        message:
+          type: string
+          default: temperature and unit_of_measurement is required in body
+    ResponseTemperatureNotFound:
+      type: object
+      properties:
+        message:
+          type: string
+          default: Temperatures not found
+    ResponseHumidity:
+      type: object
+      properties:
+          humidity:
+            type: string
+            example: 74.2 %
+            description: Humidity value
+          date:
+            type: string
+            format: date
+            example: 01/01/2024
+            description: Humidity date
+          time:
+            type: string
+            example: 11:30
+            description: Humidity time
+    ResponseHumidities:
+      type: array
+      items:
+        $ref: "#/components/schemas/ResponseHumidity"
+    RequestHumidity:
+      type: object
+      properties:
+        humidity: 
+          type: number
+          example: 27.4
+          description: Humidity value
+        unit_of_measurement:
+          type: string
+          example: '%'
+          description: Humidity measurement unit
+    ResponseHumidityError:
+      type: object
+      properties:
+        message:
+          type: string
+          default: humidity and unit_of_measurement is required in body
+    ResponseHumidityNotFound:
+      type: object
+      properties:
+        message:
+          type: string
+          default: Humidities not found
+    RequestUserLogin:
+      type: object
+      properties:
+        email:
+          type: string
+          example: user@email.com
+          description: User email
+        password:
+          type: string
+          example: '@Password123'
+          description: User password
+    RequestUser:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Full Name User
+          description: User name
+        email:
+          type: string
+          example: user@email.com
+          description: User email
+        password:
+          type: string
+          example: '@Password123'
+          description: User password
+    ResponseUser:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Full Name User
+          description: User name
+        email:
+          type: string
+          example: user@email.com
+          description: User email
+        token:
+          type: string
+          example: 'dkad921jkj1jKJD9jdkj10384hdajh19283'
+          description: JWT TOKEN
+    RequestUserResetPassword:
+      type: object
+      properties:
+        email:
+          type: string
+          example: user@email.com
+          description: User email
+        password:
+          type: string
+          example: '@Password123'
+          description: Current user password
+        new_password:
+          type: string
+          example: '@Password123'
+          description: User new password
+    ResponseUserNotFound:
+      type: object
+      properties:
+        message:
+          type: string
+          default: User not found with this email
+    ResponseUserAlreadyExists:
+      type: object
+      properties:
+        message:
+          type: string
+          default: There is already a user with this email
+    ResponseUserForbidden:
+      type: object
+      properties:
+        message:
+          type: string
+          default: Wrong email or password
+    ResponseUserForbiddenPassword:
+      type: object
+      properties:
+        message:
+          type: string
+          default: Password does not match the database
+    ResponseUserErrorResetPassword:
+      type: object
+      properties:
+        message:
+          type: string
+          default: email, password and new_password is required in body
+    ResponseUserErrorLogin:
+      type: object
+      properties:
+        message:
+          type: string
+          default: email and password is required in body
+    ResponseUserError:
+      type: object
+      properties:
+        message:
+          type: string
+          default: email, password and name is required in body
+    ResponseUserUnauthorized:
+      type: object
+      properties:
+        message: 
+          type: string
+          default: Invalid token or Missing authentication
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
