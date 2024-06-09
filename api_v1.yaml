@@ -7,7 +7,7 @@ info:
     email: guihdevtestes@gmail.com
 
 servers:
-  - url: https://teste-q43i.onrender.com/v1
+  - url: https://backendt-pi-quarto-semestre-v2.onrender.com/v1/
 
 tags:
   - name: Temperatures
